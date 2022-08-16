@@ -11,7 +11,7 @@ To build a documentation do the following:
 2. From shell, this directory being the working directory: `cd docs && julia make.jl`
 
 Also the documentation for the most recent release is available on
-[GitHub Pages](https://shamazmazum.github.io/CorrelationTrackers.jl/v0.1.0/).
+[GitHub Pages](https://fatimp.github.io/CorrelationTrackers.jl/stable/).
 
 ## Acknowledgements
 
