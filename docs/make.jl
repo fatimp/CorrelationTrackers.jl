@@ -6,4 +6,4 @@ using CorrelationTrackers
 makedocs(sitename = "CorrelationTrackers.jl documentation",
          format = Documenter.HTML(prettyurls = false))
 
-deploydocs(repo = "github.com/shamazmazum/CorrelationTrackers.jl.git")
+deploydocs(repo = "github.com/fatimp/CorrelationTrackers.jl.git")
