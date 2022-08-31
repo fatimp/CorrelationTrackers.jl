@@ -30,11 +30,6 @@ update_gradient_p(:: SSTracker)       = true
 update_gradient_p(:: SVTracker)       = true
 update_gradient_p(:: AbstractTracker) = false
 
-function gradient(array :: AbstractArray)
-    deltas = imgradients(array, KernelFactors.sobel)
-    return map((x...) -> norm(x), deltas...)
-end
-
 struct CorrelationTracker{T, N, A} <: AbstractArray{T, N}
     system     :: A
     periodic   :: Bool
@@ -134,7 +129,7 @@ function CorrelationTracker(system     :: AbstractArray{T, N};
     # FIXME: What about multiphase systems?
     return CorrelationTracker{T, N, typeof(system)}(
         copy(system), periodic,
-        corrdata, gradient(system),
+        corrdata, Utilities.extract_edges(system),
         Directional.S2FTPlans(system, periodic),
         len, directions)
 end
@@ -237,7 +232,7 @@ function update_gradient!(tracker  :: CorrelationTracker{T, N},
     gradstart = max(index - 2uidx, fidx)
     gradstop  = min(index + 2uidx, lidx)
     subsys    = system[gradstart:gradstop]
-    subgrad   = gradient(subsys)
+    subgrad   = Utilities.extract_edges(subsys)
 
     # Index of the updated element in subgrad
     sindex       = index - gradstart + uidx
