@@ -129,7 +129,7 @@ function CorrelationTracker(system     :: AbstractArray{T, N};
     # FIXME: What about multiphase systems?
     return CorrelationTracker{T, N, typeof(system)}(
         copy(system), periodic,
-        corrdata, Utilities.extract_edges(system),
+        corrdata, Utilities.extract_edges(system, Utilities.EdgesFilterReflect()),
         Directional.S2FTPlans(system, periodic),
         len, directions)
 end
@@ -232,7 +232,7 @@ function update_gradient!(tracker  :: CorrelationTracker{T, N},
     gradstart = max(index - 2uidx, fidx)
     gradstop  = min(index + 2uidx, lidx)
     subsys    = system[gradstart:gradstop]
-    subgrad   = Utilities.extract_edges(subsys)
+    subgrad   = Utilities.extract_edges(subsys, Utilities.EdgesFilterReflect())
 
     # Index of the updated element in subgrad
     sindex       = index - gradstart + uidx
