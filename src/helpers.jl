@@ -7,7 +7,7 @@
 Return $L_2^{\text{phase}}$ function for an underlying system of the
 tracker `x`.
 """
-Directional.l2(tracker :: CorrelationTracker{T}, phase) where T =
+D.l2(tracker :: CorrelationTracker{T}, phase) where T =
     tracker.corrdata[L2Tracker{T}(phase)]
 
 @doc raw"""
@@ -16,7 +16,7 @@ Directional.l2(tracker :: CorrelationTracker{T}, phase) where T =
 Return $S_2^{\text{phase}}$ function for an underlying system of the
 tracker `x`.
 """
-Directional.s2(tracker :: CorrelationTracker{T}, phase) where T =
+D.s2(tracker :: CorrelationTracker{T}, phase) where T =
     tracker.corrdata[S2Tracker{T}(phase)]
 
 @doc raw"""
@@ -25,7 +25,7 @@ Directional.s2(tracker :: CorrelationTracker{T}, phase) where T =
 Return $F_{ss}_2^{\text{phase}}$ function for an underlying system of the
 tracker `x`.
 """
-Directional.surfsurf(tracker :: CorrelationTracker{T}, phase) where T =
+D.surfsurf(tracker :: CorrelationTracker{T}, phase) where T =
     tracker.corrdata[SSTracker{T}(phase)]
 
 @doc raw"""
@@ -34,7 +34,7 @@ Directional.surfsurf(tracker :: CorrelationTracker{T}, phase) where T =
 Return $F_{sv}_2^{\text{phase}}$ function for an underlying system of the
 tracker `x`.
 """
-Directional.surfvoid(tracker :: CorrelationTracker{T}, phase) where T =
+D.surfvoid(tracker :: CorrelationTracker{T}, phase) where T =
     tracker.corrdata[SVTracker{T}(phase)]
 
 const TrackerAlike{T, N} = Union{CorrelationTracker{T, N}, ExtrapolatedData{T, N}}

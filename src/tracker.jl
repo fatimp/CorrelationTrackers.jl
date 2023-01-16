@@ -15,15 +15,15 @@ struct CCTracker{T} <: AbstractTracker{T}
 end
 
 (tracked :: CCTracker{T})(system :: AbstractArray{T}; kwargs...) where T =
-    Directional.s2(system, Directional.SeparableIndicator(x -> x == tracked.phase1,
-                                                          x -> x == tracked.phase2);
-                   kwargs...)
+    D.s2(system, D.SeparableIndicator(x -> x == tracked.phase1,
+                                      x -> x == tracked.phase2);
+         kwargs...)
 
 
 
 const SimpleTracker{T}  = Union{L2Tracker{T}, S2Tracker{T}, CCTracker{T}}
 const SurfaceTracker{T} = Union{SSTracker{T}, SVTracker{T}}
-const CorrdataDict{T}   = Dict{AbstractTracker{T}, Directional.CorrelationData}
+const CorrdataDict{T}   = Dict{AbstractTracker{T}, D.CorrelationData}
 
 # Is gradient update needed?
 update_gradient_p(:: SSTracker)       = true
@@ -35,7 +35,7 @@ struct CorrelationTracker{T, N, A} <: AbstractArray{T, N}
     periodic   :: Bool
     corrdata   :: CorrdataDict{T}
     grad       :: Array{Float64, N}
-    fft_plans  :: Directional.S2FTPlans
+    fft_plans  :: D.S2FTPlans
 
     # For quick access
     corrlen    :: Int
@@ -117,7 +117,7 @@ julia> let
 function CorrelationTracker(system     :: AbstractArray{T, N};
                             tracking   :: Vector{<:AbstractTracker{T}} = default_trackers(T),
                             periodic   :: Bool           = false,
-                            directions :: Vector{Symbol} = system |> Directional.default_directions,
+                            directions :: Vector{Symbol} = system |> D.default_directions,
                             kwargs...) where {T, N}
     corrdata =
         CorrdataDict{T}(data => data(system;
@@ -129,8 +129,8 @@ function CorrelationTracker(system     :: AbstractArray{T, N};
     # FIXME: What about multiphase systems?
     return CorrelationTracker{T, N, typeof(system)}(
         copy(system), periodic,
-        corrdata, Utilities.extract_edges(system, Utilities.EdgesFilterReflect()),
-        Directional.S2FTPlans(system, periodic),
+        corrdata, U.extract_edges(system, U.EdgeFilter(U.BCReflect(), U.Kernel3x3())),
+        D.S2FTPlans(system, periodic),
         len, directions)
 end
 
@@ -162,10 +162,10 @@ function update_at_point(tracker   :: CorrelationTracker{T, N},
     slice = get_slice(tracker.grad,
                       tracker.periodic,
                       Tuple(index), direction)
-    s2 = Directional.s2(slice, Directional.SeparableIndicator(identity);
-                        periodic = tracker.periodic,
-                        plans    = tracker.fft_plans,
-                        len      = tracker.corrlen)
+    s2 = D.s2(slice, D.SeparableIndicator(identity);
+              periodic = tracker.periodic,
+              plans    = tracker.fft_plans,
+              len      = tracker.corrlen)
     return s2.success[:x]
 end
 
@@ -182,11 +182,11 @@ function update_at_point(tracker   :: CorrelationTracker{T, N},
 
     χ1(x) = slice_system[x] == 0
     χ2(x) = slice_surface[x]
-    s2 = Directional.s2(CartesianIndices(slice_system),
-                        Directional.SeparableIndicator(χ1, χ2);
-                        periodic = tracker.periodic,
-                        plans    = tracker.fft_plans,
-                        len      = tracker.corrlen)
+    s2 = D.s2(CartesianIndices(slice_system),
+              D.SeparableIndicator(χ1, χ2);
+              periodic = tracker.periodic,
+              plans    = tracker.fft_plans,
+              len      = tracker.corrlen)
     return s2.success[:x]
 end
 
@@ -232,7 +232,7 @@ function update_gradient!(tracker  :: CorrelationTracker{T, N},
     gradstart = max(index - 2uidx, fidx)
     gradstop  = min(index + 2uidx, lidx)
     subsys    = system[gradstart:gradstop]
-    subgrad   = Utilities.extract_edges(subsys, Utilities.EdgesFilterReflect())
+    subgrad   = U.extract_edges(subsys, U.EdgeFilter(U.BCReflect(), U.Kernel3x3()))
 
     # Index of the updated element in subgrad
     sindex       = index - gradstart + uidx
@@ -314,7 +314,7 @@ function AnnealingAPI.rollback!(tracker  :: CorrelationTracker{T, N},
     for tr in trackers
         corrdata = tracker.corrdata[tr]
 
-        for direction in Directional.directions(corrdata)
+        for direction in D.directions(corrdata)
             corrdata.success[direction] .-= rollback.corrdata[(tr, direction)]
         end
     end

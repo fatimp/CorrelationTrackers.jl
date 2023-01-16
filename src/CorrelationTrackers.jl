@@ -1,7 +1,10 @@
 module CorrelationTrackers
 using Reexport: @reexport
 @reexport using AnnealingAPI
-using CorrelationFunctions
+
+import CorrelationFunctions.Directional as D
+import CorrelationFunctions.Utilities as U
+
 using Base.Iterators: zip, countfrom, takewhile, take
 using CircularArrays: CircularArray
 using Interpolations: interpolate, extrapolate, Gridded, Linear, Line

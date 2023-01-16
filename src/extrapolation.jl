@@ -6,7 +6,7 @@
 
 struct ExtrapolatedData{T, N} <: AbstractArray{T, N}
     periodic   :: Bool
-    corrdata   :: Dict{AbstractTracker{T}, Directional.CorrelationData}
+    corrdata   :: Dict{AbstractTracker{T}, D.CorrelationData}
     corrlen    :: Int
     directions :: Vector{Symbol}
     shape      :: NTuple{N, Int}
@@ -42,19 +42,18 @@ function extrapolate_vector(data           :: Vector{Float64},
     return [ext(x) for x in new_grid]
 end
 
-function extrapolate_data(data       :: Directional.CorrelationData,
+function extrapolate_data(data       :: D.CorrelationData,
                           directions :: Vector{Symbol})
     # TODO: use real extrapolation here
     corrlen = length(data)
-    unit_length = Directional.unit_length
 
     local function statistics_gen(dict)
         Iterators.map(directions) do direction
             if direction ∈ data
                 direction => dict[direction]
             else
-                exdata = (extrapolate_vector(dict[dir], unit_length(dir), unit_length(direction))
-                          for dir in Directional.directions(data))
+                exdata = (extrapolate_vector(dict[dir], D.unit_length(dir), D.unit_length(direction))
+                          for dir in D.directions(data))
                 direction => reduce(.+, exdata)
             end
         end
@@ -63,7 +62,7 @@ function extrapolate_data(data       :: Directional.CorrelationData,
     total   = statistics_gen(data.total)
     success = statistics_gen(data.success)
 
-    return Directional.CorrelationData(directions, Dict(success), Dict(total))
+    return D.CorrelationData(directions, Dict(success), Dict(total))
 end
 
 """
@@ -79,7 +78,7 @@ directions. Correlation functions are defined for objects of
 julia> begin
        a = rand(MersenneTwister(1), 0:1, (20, 20));
        tracker = CorrelationTracker(a; periodic = true);
-       Directional.s2(tracker, 0)
+       D.s2(tracker, 0)
        end
 ┌────────┬────────┐
 │      x │      y │
@@ -100,7 +99,7 @@ julia> begin
 ```jdoctest mylabel
 julia> begin
        extra = ExtrapolatedData(tracker, 3, [:x, :y, :z, :xyz])
-       Directional.s2(extra, 0)
+       D.s2(extra, 0)
        end
 ┌────────┬────────┬─────────┬──────────┐
 │      x │      y │       z │      xyz │
@@ -132,16 +131,16 @@ function ExtrapolatedData(tracker    :: CorrelationTracker{T, N},
 end
 
 # TODO: Move to CorrelationFunctions.jl maybe?
-function join_data(data1 :: Directional.CorrelationData,
-                   data2 :: Directional.CorrelationData)
-    @assert Directional.directions(data1) == Directional.directions(data2)
-    directions = Directional.directions(data1)
+function join_data(data1 :: D.CorrelationData,
+                   data2 :: D.CorrelationData)
+    @assert D.directions(data1) == D.directions(data2)
+    directions = D.directions(data1)
 
     success = Dict(dir => data1.success[dir] + data2.success[dir]
                    for dir in directions)
     total   = Dict(dir => data1.total[dir] + data2.total[dir]
                    for dir in directions)
-    return Directional.CorrelationData(directions, success, total)
+    return D.CorrelationData(directions, success, total)
 end
 
 """
@@ -173,14 +172,14 @@ function ExtrapolatedData(data1 :: ExtrapolatedData{T, N},
 end
 
 
-Directional.l2(tracker :: ExtrapolatedData{T}, phase) where T =
+D.l2(tracker :: ExtrapolatedData{T}, phase) where T =
     tracker.corrdata[L2Tracker{T}(phase)]
 
-Directional.s2(tracker :: ExtrapolatedData{T}, phase) where T =
+D.s2(tracker :: ExtrapolatedData{T}, phase) where T =
     tracker.corrdata[S2Tracker{T}(phase)]
 
-Directional.surfsurf(tracker :: ExtrapolatedData{T}, phase) where T =
+D.surfsurf(tracker :: ExtrapolatedData{T}, phase) where T =
     tracker.corrdata[SSTracker{T}(phase)]
 
-Directional.surfvoid(tracker :: ExtrapolatedData{T}, phase) where T =
+D.surfvoid(tracker :: ExtrapolatedData{T}, phase) where T =
     tracker.corrdata[SVTracker{T}(phase)]
