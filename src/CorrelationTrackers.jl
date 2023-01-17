@@ -18,6 +18,5 @@ export
     CorrelationTracker,
     ExtrapolatedData,
     default_trackers,
-    # Extra trackers
-    CCTracker, cross_correlation
+    cross_correlation
 end # module

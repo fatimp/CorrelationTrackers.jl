@@ -1,24 +1,18 @@
-# Cross-correlation tracker not present in AnnealingAPI
-"""
-    CCTracker(phase1, phase2)
-
-Descriptor for cross-corelation function for the phases `phase1` and
-`phase2`.
-
-**NB:** Cross-correlation function does not commute,
-i.e. `CCTracker(phase1, phase2)` and `CCTracker(phase2, phase1)` track
-different functions.
-"""
-struct CCTracker{T} <: AbstractTracker{T}
-    phase1 :: T
-    phase2 :: T
-end
-
+# Make trackers callable for convenience
+(tracked :: L2Tracker{T})(system :: AbstractArray{T}; kwargs...) where T =
+    D.l2(system, tracked.phase; kwargs...)
+(tracked :: S2Tracker{T})(system :: AbstractArray{T}; kwargs...) where T =
+    D.s2(system, tracked.phase; kwargs...)
+(tracked :: SSTracker{T})(system :: AbstractArray{T}; kwargs...) where T =
+    D.surfsurf(system, tracked.phase;
+               filter = U.EdgeFilter(U.BCReflect(), U.Kernel3x3()), kwargs...)
+(tracked :: SVTracker{T})(system :: AbstractArray{T}; kwargs...) where T =
+    D.surfvoid(system, tracked.phase;
+               filter = U.EdgeFilter(U.BCReflect(), U.Kernel3x3()), kwargs...)
 (tracked :: CCTracker{T})(system :: AbstractArray{T}; kwargs...) where T =
     D.s2(system, D.SeparableIndicator(x -> x == tracked.phase1,
                                       x -> x == tracked.phase2);
          kwargs...)
-
 
 
 const SimpleTracker{T}  = Union{L2Tracker{T}, S2Tracker{T}, CCTracker{T}}
